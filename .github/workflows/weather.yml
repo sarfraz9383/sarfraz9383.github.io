@@ -1,0 +1,29 @@
+name: Update weather
+
+on:
+  schedule:
+    - cron: "7,37 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch Riyadh weather and air quality (Open-Meteo)
+        run: |
+          set -e
+          W=$(curl -fsS --retry 3 "https://api.open-meteo.com/v1/forecast?latitude=24.71&longitude=46.68&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,is_day,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min&timezone=Asia%2FRiyadh&forecast_days=1")
+          A=$(curl -fsS --retry 3 "https://air-quality-api.open-meteo.com/v1/air-quality?latitude=24.71&longitude=46.68&current=us_aqi,pm2_5,pm10,dust&timezone=Asia%2FRiyadh")
+          printf '{"updated":"%s","weather":%s,"air":%s}\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$W" "$A" > weather.json
+      - name: Save
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add weather.json
+          git commit -m "Update weather" || exit 0
+          git pull --rebase
+          git push
