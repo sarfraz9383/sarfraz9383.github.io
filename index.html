@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Clock">
+<title>Desk Clock</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Outfit:200,300,400&display=swap">
+<style>
+/* VOICE: quiet luxury — a watchmaker's desk piece with a choice of finishes
+   IDEA: a chronograph dial; each colour theme is a different watch dial finish (midnight, emerald, royal, ocean, bordeaux, sand, pearl)
+   PICTURE: the dial itself, filling the screen height
+   COLOUR and TYPE: rich gradient grounds with a metal accent per theme; Outfit ultralight (Helvetica Neue fallback)
+   LAYOUT: one centred dial; weekday above the time, date below; theme name fades in when changed */
+html,body{margin:0;padding:0;height:100%;overflow:hidden}
+body{background:#05070c;color:#f4efe4;font-family:"Outfit","Helvetica Neue",Helvetica,Arial,sans-serif;font-weight:200;
+  -webkit-user-select:none;-webkit-tap-highlight-color:rgba(0,0,0,0);cursor:pointer;
+  -webkit-transition:color 1.2s;transition:color 1.2s}
+.bg{position:absolute;top:0;left:0;right:0;bottom:0;-webkit-transition:opacity 1.2s;transition:opacity 1.2s}
+.halo{position:absolute;left:50%;top:50%;width:120vmin;height:120vmin;margin:-60vmin 0 0 -60vmin;border-radius:50%;opacity:.35;
+  -webkit-animation:breathe 9s ease-in-out infinite;animation:breathe 9s ease-in-out infinite}
+@-webkit-keyframes breathe{0%,100%{opacity:.22;-webkit-transform:scale(.94)}50%{opacity:.42;-webkit-transform:scale(1.04)}}
+@keyframes breathe{0%,100%{opacity:.22;transform:scale(.94)}50%{opacity:.42;transform:scale(1.04)}}
+body.dim .face{opacity:.45}
+body.dim .halo{display:none}
+.stage{position:absolute;top:0;left:0;right:0;bottom:0;display:-webkit-box;display:-webkit-flex;display:flex;
+  -webkit-box-pack:center;-webkit-justify-content:center;justify-content:center;
+  -webkit-box-align:center;-webkit-align-items:center;align-items:center}
+.face{position:relative;width:88vmin;height:88vmin;-webkit-transition:opacity 2s;transition:opacity 2s}
+.face svg{position:absolute;top:0;left:0;width:100%;height:100%}
+.inner{position:absolute;top:0;left:0;right:0;bottom:0;display:-webkit-box;display:-webkit-flex;display:flex;
+  -webkit-box-orient:vertical;-webkit-flex-direction:column;flex-direction:column;
+  -webkit-box-pack:center;-webkit-justify-content:center;justify-content:center;
+  -webkit-box-align:center;-webkit-align-items:center;align-items:center;text-align:center}
+.wd{font-size:3.6vmin;font-weight:300;letter-spacing:.35em;text-transform:uppercase;margin-left:.35em;-webkit-transition:color 1.2s;transition:color 1.2s}
+.time{font-size:21vmin;line-height:1;font-weight:200;letter-spacing:-.03em;white-space:nowrap;margin:2.2vmin 0 1.6vmin}
+.time .c{display:inline-block;position:relative;top:-.07em;margin:0 .01em;opacity:.9;-webkit-transition:opacity .5s;transition:opacity .5s}
+.time .c.off{opacity:.2}
+.ap{font-size:3vmin;font-weight:400;letter-spacing:.3em;margin-bottom:1vmin;height:3.4vmin}
+.sep{width:8vmin;height:1px;margin:1.6vmin auto 2.2vmin}
+.dt{font-size:4.2vmin;font-weight:300;letter-spacing:.06em;opacity:.85}
+.tname{position:absolute;top:22px;left:0;right:0;text-align:center;font-size:13px;letter-spacing:.3em;text-transform:uppercase;
+  font-weight:400;opacity:0;-webkit-transition:opacity .6s;transition:opacity .6s}
+.tname.on{opacity:.7}
+.hint{position:absolute;bottom:14px;left:0;right:0;text-align:center;font-size:12px;letter-spacing:.08em;opacity:.4;font-weight:400;
+  -webkit-transition:opacity 1s;transition:opacity 1s}
+</style>
+</head>
+<body>
+<div class="bg" id="bg"></div>
+<div class="halo" id="halo"></div>
+<div class="tname" id="tname"></div>
+<div class="stage">
+  <div class="face" id="face">
+    <svg viewBox="0 0 200 200" id="dial">
+      <defs>
+        <linearGradient id="metal" x1="0" y1="0" x2="1" y2="1">
+          <stop id="s1" offset="0" stop-color="#f3dca6"/>
+          <stop id="s2" offset=".5" stop-color="#d9b878"/>
+          <stop id="s3" offset="1" stop-color="#a9823e"/>
+        </linearGradient>
+      </defs>
+      <circle cx="100" cy="100" r="97" fill="none" stroke="currentColor" stroke-opacity=".07" stroke-width=".6"/>
+      <g id="ticks"></g>
+      <circle cx="100" cy="100" r="92" fill="none" stroke="currentColor" stroke-opacity=".1" stroke-width="1.2"/>
+      <circle id="arc" cx="100" cy="100" r="92" fill="none" stroke="url(#metal)" stroke-width="1.8" stroke-linecap="round"
+        transform="rotate(-90 100 100)" stroke-dasharray="578.05 578.05" stroke-dashoffset="578.05"/>
+      <circle id="glow" cx="100" cy="8" r="4.6" fill-opacity=".22"/>
+      <circle id="dot" cx="100" cy="8" r="2.1"/>
+    </svg>
+    <div class="inner">
+      <div class="wd" id="wd">&nbsp;</div>
+      <div class="time"><span id="hh">--</span><span class="c" id="c">:</span><span id="mm">--</span></div>
+      <div class="ap" id="ap"></div>
+      <div class="sep" id="sep"></div>
+      <div class="dt" id="dt">&nbsp;</div>
+    </div>
+  </div>
+</div>
+<div class="hint" id="hint">Tap · 12 / 24 hour &nbsp;&nbsp;&nbsp; Double-tap · change colour</div>
+<script>
+(function(){
+  var NS="http://www.w3.org/2000/svg";
+  var DAYS=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+  var MONTHS=["January","February","March","April","May","June","July","August","September","October","November","December"];
+  /* name, ground gradient [centre, mid, edge], text, accent, metal [light, mid, deep], halo */
+  var THEMES=[
+    ["Midnight Gold",["#1d2740","#0c1120","#04060b"],"#f6f0e4","#e0bd78",["#f7e2ae","#e0bd78","#a8803b"],"#3a4d80"],
+    ["Emerald",      ["#0f4a3c","#062a22","#021410"],"#f1f6ef","#e3c27e",["#f6e2b0","#e3c27e","#a7823f"],"#1d8a6c"],
+    ["Royal Amethyst",["#3b1f66","#1d0f3a","#0b0519"],"#f6f0fb","#f0b7c9",["#ffd9e3","#f0b7c9","#b87790"],"#7b47c9"],
+    ["Ocean",        ["#0c4a6e","#06283f","#02121e"],"#eef8fc","#6fe0e8",["#c7fbff","#6fe0e8","#2a9fb0"],"#1689b5"],
+    ["Bordeaux",     ["#5c1626","#300b15","#140408"],"#fbefe9","#ff9f7a",["#ffd1bd","#ff9f7a","#c9603d"],"#a82f45"],
+    ["Desert Sand",  ["#f6e7cf","#e9d0aa","#c9a87c"],"#3a2717","#9a5b2a",["#c98a55","#9a5b2a","#6b3a17"],"#ffffff"],
+    ["Pearl",        ["#ffffff","#f2eee6","#dcd4c6"],"#1d1a15","#a07a38",["#d4b06a","#a07a38","#6f5020"],"#ffffff"]
+  ];
+  var C=578.05, R=92, h24=false, ti=0, lastTap=0, tapTimer=null, lastMin=-1, nameTimer=null, majors=[];
+  try{ h24=localStorage.getItem("clk24")==="1"; ti=parseInt(localStorage.getItem("clkTheme")||"0",10)||0; }catch(e){}
+  if(ti<0||ti>=THEMES.length) ti=0;
+  function $(id){return document.getElementById(id);}
+  function pad(n){return n<10?"0"+n:""+n;}
+  function save(){ try{ localStorage.setItem("clk24",h24?"1":"0"); localStorage.setItem("clkTheme",String(ti)); }catch(e){} }
+  function hexA(h,a){ var n=parseInt(h.slice(1),16); return "rgba("+(n>>16&255)+","+(n>>8&255)+","+(n&255)+","+a+")"; }
+
+  var g=$("ticks");
+  for(var i=0;i<60;i++){
+    var a=i*6*Math.PI/180, major=(i%5===0), r1=major?83:85.5, r2=88;
+    var l=document.createElementNS(NS,"line");
+    l.setAttribute("x1",100+r1*Math.sin(a)); l.setAttribute("y1",100-r1*Math.cos(a));
+    l.setAttribute("x2",100+r2*Math.sin(a)); l.setAttribute("y2",100-r2*Math.cos(a));
+    l.setAttribute("stroke","currentColor");
+    l.setAttribute("stroke-opacity", major ? ".95" : ".25");
+    l.setAttribute("stroke-width", major ? "1.1" : ".5");
+    l.setAttribute("stroke-linecap","round");
+    g.appendChild(l);
+    if(major) majors.push(l);
+  }
+
+  function applyTheme(showName){
+    var t=THEMES[ti], gr=t[1];
+    $("bg").style.background="radial-gradient(ellipse at 50% 45%,"+gr[0]+" 0%,"+gr[1]+" 50%,"+gr[2]+" 100%)";
+    $("halo").style.background="radial-gradient(circle,"+hexA(t[5],.55)+" 0%,"+hexA(t[5],0)+" 65%)";
+    document.body.style.color=t[2];
+    $("wd").style.color=t[3]; $("ap").style.color=t[3]; $("tname").style.color=t[3];
+    $("sep").style.background="linear-gradient(to right,"+hexA(t[3],0)+","+t[3]+","+hexA(t[3],0)+")";
+    $("s1").setAttribute("stop-color",t[4][0]); $("s2").setAttribute("stop-color",t[4][1]); $("s3").setAttribute("stop-color",t[4][2]);
+    $("dot").setAttribute("fill",t[4][0]); $("glow").setAttribute("fill",t[3]);
+    for(var k=0;k<majors.length;k++) majors[k].setAttribute("stroke",t[3]);
+    if(showName){
+      $("tname").innerHTML=t[0]; $("tname").className="tname on";
+      clearTimeout(nameTimer); nameTimer=setTimeout(function(){ $("tname").className="tname"; },2500);
+    }
+  }
+  function frame(){
+    var d=new Date(), s=d.getSeconds(), ms=d.getMilliseconds(), m=d.getMinutes();
+    var frac=(s+ms/1000)/60;
+    $("arc").setAttribute("stroke-dashoffset",(C*(1-frac)).toFixed(2));
+    var a=frac*2*Math.PI, x=(100+R*Math.sin(a)).toFixed(2), y=(100-R*Math.cos(a)).toFixed(2);
+    $("dot").setAttribute("cx",x); $("dot").setAttribute("cy",y);
+    $("glow").setAttribute("cx",x); $("glow").setAttribute("cy",y);
+    $("c").className="c"+(s%2?" off":"");
+    if(m!==lastMin){ lastMin=m; draw(d); }
+  }
+  function draw(d){
+    d=d||new Date();
+    var h=d.getHours(), m=d.getMinutes(), showH=h, ap="";
+    if(!h24){ ap=h<12?"AM":"PM"; showH=h%12; if(showH===0) showH=12; }
+    $("hh").innerHTML = h24 ? pad(showH) : String(showH);
+    $("mm").innerHTML = pad(m);
+    $("ap").innerHTML = ap;
+    $("wd").innerHTML = DAYS[d.getDay()];
+    $("dt").innerHTML = d.getDate()+" "+MONTHS[d.getMonth()]+" "+d.getFullYear();
+    var isLight=(ti>=5), night=(h>=22||h<6);
+    document.body.className=(night&&!isLight)?"dim":"";
+  }
+  function onTap(){
+    var now=new Date().getTime();
+    if(now-lastTap<350){ clearTimeout(tapTimer); ti=(ti+1)%THEMES.length; save(); applyTheme(true); draw(); lastTap=0; return; }
+    lastTap=now;
+    tapTimer=setTimeout(function(){ h24=!h24; save(); draw(); },360);
+  }
+  document.body.addEventListener("click",onTap,false);
+  setTimeout(function(){ $("hint").style.opacity="0"; },15000);
+  applyTheme(false); draw(); frame();
+  setInterval(frame,200);
+})();
+</script>
+</body>
+</html>
